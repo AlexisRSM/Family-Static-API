@@ -15,6 +15,31 @@ CORS(app)
 # create the jackson family object
 jackson_family = FamilyStructure("Jackson")
 
+john_jackson = {
+        "first_name": "John",
+        "age": 33,
+        "lucky_numbers": [7, 13, 22]
+}
+
+jane_jackson = {
+    "first_name": "Jane",
+    "age": 35,
+    "lucky_numbers": [10, 14, 3]
+}
+
+jimmy_jackson = {
+    "first_name": "Jimmy",
+    "age": 5,
+    "lucky_numbers": [1]
+}
+
+# Add example family members to the jackson_family
+jackson_family.add_member(john_jackson)
+jackson_family.add_member(jane_jackson)
+jackson_family.add_member(jimmy_jackson)
+
+""" mendes_family= FamilyStructure("Mendes") """
+
 # Handle/serialize errors like a JSON object
 @app.errorhandler(APIException)
 def handle_invalid_usage(error):
@@ -31,12 +56,43 @@ def handle_hello():
     # this is how you can use the Family datastructure by calling its methods
     members = jackson_family.get_all_members()
     response_body = {
-        "hello": "world",
         "family": members
     }
 
 
     return jsonify(response_body), 200
+
+@app.route('/member/<int:member_id>', methods=['GET'])
+def member_id(member_id):
+    found = jackson_family.get_member(member_id)
+    if not found:
+        return jsonify({"Warning": "Member Disapeared 🦧"})
+    
+    return jsonify(found), 200
+
+@app.route('/member/', methods=['POST'])
+def add_member():
+    new_member = request.json
+    print(new_member)
+
+    jackson_family.add_member(new_member)
+    return jsonify({'Processed': 'A new member was born'}), 200
+
+@app.route('/member/<int:member_id>', methods=['DELETE'])
+def delete_family_member(member_id):
+    deleted = jackson_family.delete_member(member_id)
+    if not deleted:
+        return jsonify({"Warning": "Family member not found"}), 400
+    return jsonify({"Processed": "Blood no longer blood"}), 200
+
+@app.route('/member/<int:member_id>', methods=['PUT'])
+def update_family_member(member_id):
+    updated_member = request.json
+    updated = jackson_family.update_member(member_id, updated_member)
+    if not updated:
+        return jsonify({"Warning": "Family member not found"}), 400
+    
+    return jsonify({"Processed": "Member updated"})
 
 # this only runs if `$ python src/app.py` is executed
 if __name__ == '__main__':
